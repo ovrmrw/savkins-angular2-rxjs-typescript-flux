@@ -60,6 +60,11 @@ type Action = ActionTypeTodo | ActionTypeFilter; // 全てのアクションを�
   オリジナルのstateFnがfunctionだったので全面的にclassで書き直しています。ついでに名前をContainerとしました。
   classにすることで見通しが良くなり、扱いも簡単になります。特にComponentでDIするときに@Inject()が不要になります。
   このクラスを理解するとRxJSの応用的な使い方がわかるようになります。
+  
+  クラス名はとても悩みました。以前のリポジトリではStateKeeperとしていましたが、どうもFluxやReduxの慣習とは合わない。
+  かと言ってStoreとするのはSavkinの意思に反するような気がして。(ブログ記事の中でSavkinは"NO STORE"と述べている)
+  なのでComponentと似ていて紛らわしいですがContainerとしました。
+  Component-Container Stream Pattern、このFluxに名前を付けるならこんな感じですかね。
 */
 // @Injectable() // Injectableはインスタンス生成をInjectorに任せる場合に必須です。このサンプルではtoFactoryで生成するので不要。(@laco0416 さんありがとう！)
 class Container {
@@ -341,7 +346,7 @@ bootstrap(TodoApp) // TodoAppコンポーネントのprovidersにセットした
   (DispatcherはSubjectを継承したクラスであることをもう一度思い出してください)
   (ちなみにSubjectはObservableを継承したクラスです。これも重要なポイントです)
   
-  1. Componentの"dispatcher$.next()"でストリームを流すと、2つのObservable.scanの処理が走ります。(Subjectはnextすることで自分自身を発火できる)
+  1. Componentの"dispatcher$.next()"でストリームを流すと、Containerの2つのObservable.scanの処理が走ります。(Subjectはnextすることで自分自身を発火できる)
   2. Observable.zipはRxJSのInnerSubscriberという仕組みを通じて、内包する2つのObservable.scanを待機しています。
   3. 内包する全てのObservableのストリームを受けるとzipは次にストリームを流します。
   4. subscribeの中ではStateを管理しているSubjectのnextをコールして"新しいState"を次に流します。
