@@ -229,6 +229,7 @@ class TodoListComponent {
   // 戻り値がObservableであるためtemplateではasyncパイプを付ける必要があります。"angular2 async pipe"でググる。
   get filtered() {
     // Containerの"stateSubject.next()"が流すストリームをここで受けます。"dispatcher$.next()"から始まるストリームの旅の終点です。
+    // Containerから受けたストリームをObservable.mapでViewTemplateに流してAsyncPipeで受けるとか、人間の発想ではないですね。
     return this.container.state$.map<Todo[]>((state: AppState) => {
       return getVisibleTodos(state.todos, state.visibilityFilter);
     });
