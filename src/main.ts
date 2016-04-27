@@ -8,6 +8,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/observable/zip';
+import 'rxjs/add/operator/debounceTime';
 
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -62,14 +63,14 @@ type Action = ActionTypeTodo | ActionTypeFilter; // 全てのアクションを�
 */
 // @Injectable() // Injectableはインスタンス生成をInjectorに任せる場合に必須です。このサンプルではtoFactoryで生成するので不要。(@laco0416 さんありがとう！)
 class Container {
-  private stateSubject: Subject<AppState>; // .next出来ればいいだけなのでBehaviorSubjectではなくSubjectで可です。
+  private stateSubject: Subject<AppState>; // .next出来れば良いだけなのでBehaviorSubjectではなくSubjectで可です。
 
   constructor(initState: AppState, dispatcher$: Observable<Action>) { // dispatcherの型はDispatcher<Action>でも良いのですが敢えてそうする必要もないのでObservableにしてます。
     // BehaviorSubjectを使ってStateの初期値をセットします。これが案外重要です。
     this.stateSubject = new BehaviorSubject(initState); // ここはBehaviorSubjectかReplaySubjectを使わないと動作しませんでした。Subjectではダメでした。
 
-    // Component側で"dispatcher$.next()"するとここにストリームが流れてきます。
-    // 最後はここからComponentにストリームを流すのですが、驚くべき事に一連の流れが全てRxJSのストリームです。
+    // Componentで"dispatcher$.next()"するとここにストリームが流れてきます。
+    // 最後のsubscribeでComponentにストリームを流すのですが、驚くべき事に一連の流れが全てRxJSのストリームです。
     // 理解するのは大変ですがこの一文の威力は凄まじいものがあります。        
     Observable
       .zip<AppState>( // "rxjs zip"でググる。
@@ -81,15 +82,16 @@ class Container {
           return { todos, visibilityFilter } as AppState; // {'todos':todos,'visibilityFilter':visibilityFilter}の省略記法です。
         }
       )
-      // .do(s => console.log(s)) // 別にこれは要りません。ストリームの中間で値がどうなっているか確認したいときに使います。
+      // .debounceTime<AppState>(1000) // 1000ms何も流れてこなければストリームを次に流す。RxJSと言えばコレみたいな。
+      // .do(s => console.log(s)) // ストリームの中間で値がどうなっているか確認したいときに使います。
       .subscribe(appState => { // "rxjs subscribe"でググる。
-        // .nextでストリームを次に流しています。次ってどこ？Component側の"state$.map(...)"の部分です。これが腑に落ちると結構感動します。
+        // .nextで次にストリームを流しています。次ってどこ？Componentの"container.state$.map(...)"の部分です。これが腑に落ちると結構感動します。
         this.stateSubject.next(appState);
       });
   }
   
   // このプロパティはComponentとContainerを繋ぐブリッジだと言えます。privateなプロパティを渡すことでリードオンリーにしているのも特徴です。
-  // Component側では"state$.map(...)"の部分でストリームを受けています。
+  // Componentでは"container.state$.map(...)"の部分でストリームを受けています。
   get state$() {
     return this.stateSubject as Observable<AppState>; // Component側で参照したときに見慣れたObservableになっているという親切設計。
   }
@@ -100,11 +102,11 @@ class Container {
   変更の必要があるものだけ値を差し替えて返します。
   Actionの型に応じて処理が分岐していくのが特徴で、TypeScriptの型判定が使われています。
   
-  Componentで"dispatcher$.next(hoge)"するとscanにhogeが投げ込まれて新しい値を返します。
+  Componentで"dispatcher$.next(action)"するとscanにactionが投げ込まれて新しい値を返します。
   返すってどこに？Reducerを内包しているObservable.zipに、です。
   値を返すというよりストリームを次に流すと言った方がRxJS的かもしれません。
-  重要なのは配列やコレクションのreduceと違って、Observable.scanは一度セットされるとずっと"残り続ける"ことにあります。(@bouzuya さんありがとう！)
-  何分でも何時間でもアプリケーションが終了するまで残り続けてdispatcher$からのnextを待ち続けます。なんて健気なんでしょう。     
+  重要なのは配列やコレクションのreduceと違って、Observable.scanは一度セットされるとずっと"残り続ける"ことにあります。
+  何分でも何時間でもアプリケーションが終了するまで残り続けてdispatcher$からのnextを待ち続けます。なんて健気なんでしょう。(@bouzuya さんありがとう！)     
 */
 // dispatcher$の型がObservable<Action>ではなく<ActionTypeTodo>なのは、Todoの操作に必要なものだけ見せるという配慮です。
 function todosStateReducer(initTodos: Todo[], dispatcher$: Observable<ActionTypeTodo>): Observable<Todo[]> {
@@ -157,7 +159,7 @@ function merge<T>(obj1: T, obj2: {}): T {
 /*
   DI設定。Savkin's Fluxの要。ViewとLogicを巧妙に分離しています。最初は黒魔術かと思うかも。
   https://laco0416.github.io/post/platform-prividers-of-angular-2/ を参考にすると理解の助けになるかもしれません。
-  Providerはprovide()で書いても良いですが個人的にはbind()の方が書きやすくて好きだです。provideはGrunt、bindはGulpみたいな感じ？
+  Providerはprovide()で書いても良いですが個人的にはbind()の方が書きやすくて好きです。provideはGrunt、bindはGulpみたいな感じ？
 */
 // RxJSのSubjectクラスを継承してDispatcherクラスを作ります。機能は変わりません。このクラスはDIで使うだけです。
 // Dispatcherをクラスとして用意しておくことでComponentのDIに関する記述がシンプルになります。
@@ -183,7 +185,7 @@ const stateAndDispatcher = [
   コンポーネント群。View描画に必要なもの。
   重要なのはDIが書いてある部分とそれらが影響している箇所だけです。その他は流し読みで構わないでしょう。 
   3ヶ所出てくるthis.dispatcher$.next()が一体何をしているのか、連鎖して何が起きているのか、僕は最後までそれを理解するのに苦労しました。
-  結論から言うとdispatcherのnextから始まるストリームは巡り巡って"container.state$.map(...)"に行き着きます。
+  結論から言うとdispatcherのnextから始まるストリームは巡り巡って"container.state$.map(...)"に流れ着きます。
 */
 // TodoListコンポーネントの子コンポーネント。
 @Component({
@@ -221,14 +223,14 @@ class TodoListComponent {
 
   // 戻り値がObservableであるためtemplateではasyncパイプを付ける必要があります。"angular2 async pipe"でググる。
   get filtered() {
-    // Containerの"statSubject.next()"で流れるストリームをここで受けます。"dispatcher$.next()"から始まるストリームの旅の終点です。
+    // Containerの"stateSubject.next()"が流すストリームをここで受けます。"dispatcher$.next()"から始まるストリームの旅の終点です。
     return this.container.state$.map<Todo[]>((state: AppState) => {
       return getVisibleTodos(state.todos, state.visibilityFilter);
     });
   }
 
   emitToggle(id: number) {
-    // .nextで即座にストリームを流しています。これを受けるのはContainerのObservable.scanです。
+    // .nextで即座にストリームを流しています。これを受けるのはContainerのObservable.scanです。クロージャを使ったトリックですね。
     this.dispatcher$.next(new ToggleTodoAction(id));
   }
 }
@@ -285,7 +287,7 @@ class FilterLinkComponent {
   // 選択中のフィルター名にアンダーラインを引く。
   // 戻り値がObservableであるためtemplateではasyncパイプを付ける必要があります。"angular2 async pipe"でググる。
   get textEffect() {
-    // Containerの"statSubject.next()"で流れるストリームをここで受けます。"dispatcher$.next()"から始まるストリームの旅の終点です。
+    // Containerの"stateSubject.next()"が流すストリームをここで受けます。"dispatcher$.next()"から始まるストリームの旅の終点です。
     return this.container.state$.map<string>((state: AppState) => {
       return state.visibilityFilter === this.filter ? 'underline' : 'none';
     });
@@ -339,8 +341,8 @@ bootstrap(TodoApp) // TodoAppコンポーネントのprovidersにセットした
   (DispatcherはSubjectを継承したクラスであることをもう一度思い出してください)
   (ちなみにSubjectはObservableを継承したクラスです。これも重要なポイントです)
   
-  1. Componentで"dispatcher$.next()"すると2つのObservable.scanの処理が走ります。(Subjectはnextすることで自分で自分を発火できる)
-  2. Observable.zipはRxJSのInnerSubscriberという仕組みを通じて、内包する2つのObservable.scanを監視しています。
+  1. Componentの"dispatcher$.next()"でストリームを流すと、2つのObservable.scanの処理が走ります。(Subjectはnextすることで自分自身を発火できる)
+  2. Observable.zipはRxJSのInnerSubscriberという仕組みを通じて、内包する2つのObservable.scanを待機しています。
   3. 内包する全てのObservableのストリームを受けるとzipは次にストリームを流します。
   4. subscribeの中ではStateを管理しているSubjectのnextをコールして"新しいState"を次に流します。
   5. 上記4はどこにストリームを流す？Componentの"container.state$.map(...)"に、です。
