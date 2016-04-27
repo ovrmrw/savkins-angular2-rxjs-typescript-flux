@@ -346,7 +346,7 @@ bootstrap(TodoApp) // TodoAppコンポーネントのprovidersにセットした
   5. 上記4はどこにストリームを流す？Componentの"container.state$.map(...)"に、です。
   
   大まかな循環サイクルは下記のようになります。Componentから始まり見事にComponentに返ってきていますね。
-  Component -> dispatcher$.next -> scan -> zip -> subscribe -> stateSubject.next -> map(Component) -> Viewへの反映 
+  Component -> dispatcher$.next -> scan(Container) -> zip -> subscribe -> stateSubject.next -> map(Component) -> Viewへの反映 
   
   SavkinはRxJSのSubjectを2つの場所で実に巧妙に使っています。
   1つはComponentからContainerのObservable.scanへAction(データ)を送り込む用途として。
