@@ -9,6 +9,7 @@ import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/observable/zip';
 import 'rxjs/add/operator/debounceTime';
+import 'rxjs/add/operator/toPromise';
 
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -229,20 +230,21 @@ class TodoListComponent implements OnInit {
     private cd: ChangeDetectorRef
   ) { }
   ngOnInit() {
-    this.subscribeFiltered(); // Viewの構成に関するものはconstructorではなくngOnInitに書くのがコツ。
+    this.subscribeFiltered(); // Viewの構成に関するものはconstructorではなくngOnInitに書くのがコツ。嵌りポイントの一つ。
   }
 
   // このサンプルではAsyncPipeを使わない実装例を示します。
   // subscribeが目に見える形になるので、こちらの方が動きがわかりやすいかもしれません。
   subscribeFiltered() {
-    this.container.state$
+    this.container.state$ // Containerの"stateSubject$.next"から流れるストリームをここで受けます。
       .map<Todo[]>((state: AppState) => {
         return getVisibleTodos(state.todos, state.visibilityFilter);
       })
       .subscribe(todos => {
-        this.filteredTodosByPush = todos;
+        this.filteredTodosByPush = todos; // filteredTodosByPushは@Input()の変数ではありませんが、OnPushで更新検知されます。
 
         // このComponentでtodosを描画するのではなく、子コンポーネントで描画する場合はmarkForCheckが必要。理由はよくわかりません。
+        // 憶測ですが、OnPushのときは配列内のオブジェクトの値が変化した程度ではコンポーネントツリーの下にChangeDetectionを伝播しないのだと思います。
         // AsyncPipeを使う場合は自動で付与されるので気にしなくてOKです。
         this.cd.markForCheck();
       });
@@ -304,19 +306,19 @@ class FilterLinkComponent implements OnInit {
     private container: Container // Containerインスタンスへの参照を取得します。
   ) { }
   ngOnInit() {
-    this.subscribeTextEffect(); // Viewの構成に関するものはconstructorではなくngOnInitに書くのがコツ。
+    this.subscribeTextEffect(); // Viewの構成に関するものはconstructorではなくngOnInitに書くのがコツ。嵌りポイントの一つ。
   }
 
   // 選択中のフィルター名にアンダーラインを引く。
   // このサンプルではAsyncPipeを使わない実装例を示します。
   // subscribeが目に見える形になるので、こちらの方が動きがわかりやすいかもしれません。
   subscribeTextEffect() {
-    this.container.state$
+    this.container.state$ // Containerの"stateSubject$.next"から流れるストリームをここで受けます。
       .map<string>((state: AppState) => {
         return state.visibilityFilter === this.filter ? 'deco-underline' : 'deco-none'; // style.cssでCSSクラスを定義しています。
       })
       .subscribe(effect => {
-        this.textEffectByPush = effect;
+        this.textEffectByPush = effect; // textEffectByPushは@Input()の変数ではありませんが、OnPushで更新検知されます。
       });
   }
 
