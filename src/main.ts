@@ -297,6 +297,15 @@ class FilterLinkComponent {
     return this.container.state$.map<string>((state: AppState) => {
       return state.visibilityFilter === this.filter ? 'underline' : 'none';
     });
+    
+    /*
+      templateでasync pipeを使わずに下記のように書いても動作します。
+    */
+    // let style: string;
+    // this.container.state$.map<string>((state: AppState) => {
+    //   return state.visibilityFilter === this.filter ? 'underline' : 'none';
+    // }).subscribe(filter => style = filter);
+    // return style;
   }
 
   setVisibilityFilter() {
