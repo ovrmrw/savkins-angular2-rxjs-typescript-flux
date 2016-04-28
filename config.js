@@ -13,6 +13,7 @@ System.config({
   packages: {
     app: {
       main: './main.ts',
+      // main: './main.without.asyncpipe.ts',
       defaultExtension: 'ts'
     }
   }

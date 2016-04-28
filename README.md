@@ -8,6 +8,13 @@ The original source is
 
 This Flux is an art made by Victor Savkin with using Angular2, RxJS and TypeScript.
 
+---
+
+(UPDATE)  
+Adding "main.without.asyncpipe.ts" which works without AsyncPipe.
+
+--- 
+
 ### How to setup.
 ```
 npm install
