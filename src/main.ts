@@ -228,8 +228,8 @@ class TodoListComponent {
 
   // 戻り値がObservableであるためtemplateではasyncパイプを付ける必要があります。"angular2 async pipe"でググる。
   get filtered() {
-    // Containerの"stateSubject.next()"が流すストリームをここで受けます。"dispatcher$.next()"から始まるストリームの旅の終点です。
-    // Containerから受けたストリームをObservable.mapでViewTemplateに流してAsyncPipeで受けるとか、人間の発想ではないですね。
+    // Containerの"stateSubject.next()"が流すストリームをここで受けます。"dispatcher$.next()"から始まるストリームの旅はtemplateのasync pipeが終点となります。
+    // Containerから受けたストリームをObservable.mapでViewTemplateに流してAsyncPipeで受けるとか、もはや人間の発想ではないですね。
     return this.container.state$.map<Todo[]>((state: AppState) => {
       return getVisibleTodos(state.todos, state.visibilityFilter);
     });
@@ -293,7 +293,7 @@ class FilterLinkComponent {
   // 選択中のフィルター名にアンダーラインを引く。
   // 戻り値がObservableであるためtemplateではasyncパイプを付ける必要があります。"angular2 async pipe"でググる。
   get textEffect() {
-    // Containerの"stateSubject.next()"が流すストリームをここで受けます。"dispatcher$.next()"から始まるストリームの旅の終点です。
+    // Containerの"stateSubject.next()"が流すストリームをここで受けます。"dispatcher$.next()"から始まるストリームの旅はtemplateのasync pipeが終点となります。
     return this.container.state$.map<string>((state: AppState) => {
       return state.visibilityFilter === this.filter ? 'underline' : 'none';
     });
@@ -345,6 +345,7 @@ bootstrap(TodoApp) // TodoAppコンポーネントのprovidersにセットした
     Observable.zip(Observable.scan, Observable.scan).subscribe(Subject.next());
     
   (DispatcherはSubjectを継承したクラスであることをもう一度思い出してください)
+  (Subjectは"自分でnextすることで自分を発火できる"という特徴を持っています)
   (ちなみにSubjectはObservableを継承したクラスです。これも重要なポイントです)
   
   1. Componentの"dispatcher$.next()"でストリームを流すと、Containerの2つのObservable.scanの処理が走ります。(Subjectはnextすることで自分自身を発火できる)
@@ -353,13 +354,13 @@ bootstrap(TodoApp) // TodoAppコンポーネントのprovidersにセットした
   4. subscribeの中ではStateを管理しているSubjectのnextをコールして"新しいState"を次に流します。
   5. 上記4はどこにストリームを流す？Componentの"container.state$.map(...)"に、です。
   
-  大まかな循環サイクルは下記のようになります。Componentから始まり見事にComponentに返ってきていますね。
-  Component -> dispatcher$.next -> scan(Container) -> zip -> subscribe -> stateSubject.next -> map(Component) -> Viewへの反映 
+  大まかな循環サイクルは下記のようになります。Componentから始まり見事にComponentに返ってきていますね。最後はAsyncPipeの中でsubscribeしています。
+  Component -> dispatcher$.next -> scan(Container) -> zip -> subscribe -> stateSubject.next -> map(Component) -> subscribe(async pipe) 
   
   SavkinはRxJSのSubjectを2つの場所で実に巧妙に使っています。
   1つはComponentからContainerのObservable.scanへAction(データ)を送り込む用途として。
   もう1つは上記で始まった一連のストリームの最後でContainerのStateをComponentに送り込む用途として。
-    
+  
   特に後者はBehaviorSubjectという特殊なSubjectを用いており、初期値をセットできます。
   Savkinはこの特徴とObservable.scanによる値の保持を、FluxやReduxで言うところのStoreの代わりに使っています。
     
