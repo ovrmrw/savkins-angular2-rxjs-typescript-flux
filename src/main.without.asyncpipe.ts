@@ -3,7 +3,7 @@ import {Component, bind, Input, Output, EventEmitter, enableProdMode, ChangeDete
 import {Observable} from 'rxjs/Observable';
 import {Observer} from 'rxjs/Observer';
 import {Subject} from 'rxjs/Subject';
-import {BehaviorSubject} from 'rxjs/subject/BehaviorSubject'; // rxjs@5.0.0-beta.7の場合は'rxjs/BehaviorSubject'
+import {BehaviorSubject} from 'rxjs/BehaviorSubject'; // rxjs@5.0.0-beta.2の場合は'rxjs/subject/BehaviorSubject'
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/do';
@@ -214,7 +214,7 @@ class TodoComponent {
 @Component({
   selector: 'todo-list',
   template: `
-    <todo *ngFor="#t of filteredTodosByPush"
+    <todo *ngFor="let t of filteredTodosByPush"
       [todo]="t"
       (toggle)="emitToggle(t.id)"></todo>
   `,
@@ -250,7 +250,6 @@ class TodoListComponent implements OnInit {
 
   emitToggle(id: number) {
     // .nextで即座にストリームを流しています。これを受けるのはContainerのObservable.scanです。クロージャを使ったトリックですね。
-    console.log(id);
     this.dispatcher$.next(new ToggleTodoAction(id));
   }
 }
