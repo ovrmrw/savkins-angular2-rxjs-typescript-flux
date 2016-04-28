@@ -17,3 +17,15 @@ li {
 li:hover {
   margin-left: 10px;
 }
+
+.deco-linethrough {
+  text-decoration: line-through
+}
+
+.deco-underline {
+  text-decoration: underline;
+}
+
+.deco-none {
+  text-decoration: none;
+}

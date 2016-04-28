@@ -3,7 +3,7 @@ import {Component, bind, Input, Output, EventEmitter, enableProdMode, ChangeDete
 import {Observable} from 'rxjs/Observable';
 import {Observer} from 'rxjs/Observer';
 import {Subject} from 'rxjs/Subject';
-import {BehaviorSubject} from 'rxjs/BehaviorSubject'; // rxjs@5.0.0-beta.2の場合は'rxjs/subject/BehaviorSubject'
+import {BehaviorSubject} from 'rxjs/subject/BehaviorSubject'; // rxjs@5.0.0-beta.7の場合は'rxjs/BehaviorSubject'
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/do';
@@ -196,7 +196,7 @@ const stateAndDispatcher = [
 @Component({
   selector: 'todo',
   template: `
-    <span (click)="toggle.next()" [style.textDecoration]="textEffect">
+    <span (click)="toggle.next()" [ngClass]="{'deco-linethrough': todo.completed}">
       {{todo.text}}
     </span>
   `
@@ -204,10 +204,6 @@ const stateAndDispatcher = [
 class TodoComponent {
   @Input() todo: Todo;
   @Output() toggle = new EventEmitter(); // "angular2 eventemitter"でググる。
-
-  get textEffect() {
-    return this.todo.completed ? 'line-through' : 'none';
-  }
 }
 
 // TodoAppコンポーネントの子コンポーネント。
@@ -279,7 +275,7 @@ class AddTodoComponent {
   selector: 'filter-link',
   template: `
     <a href="#" (click)="setVisibilityFilter()"
-      [style.textDecoration]="textEffect | async"><ng-content></ng-content></a>
+      [class]="textEffect | async"><ng-content></ng-content></a>
   `
 })
 class FilterLinkComponent {
@@ -295,7 +291,7 @@ class FilterLinkComponent {
   get textEffect() {
     // Containerの"stateSubject.next()"が流すストリームをここで受けます。"dispatcher$.next()"から始まるストリームの旅はtemplateのasync pipeが終点となります。
     return this.container.state$.map<string>((state: AppState) => {
-      return state.visibilityFilter === this.filter ? 'underline' : 'none';
+      return state.visibilityFilter === this.filter ? 'deco-underline' : 'deco-none'; // style.cssでCSSクラスを定義しています。
     });
   }
 
