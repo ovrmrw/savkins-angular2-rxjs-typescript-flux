@@ -3,7 +3,7 @@ import {Component, bind, Input, Output, EventEmitter, enableProdMode, ChangeDete
 import {Observable} from 'rxjs/Observable';
 import {Observer} from 'rxjs/Observer';
 import {Subject} from 'rxjs/Subject';
-import {BehaviorSubject} from 'rxjs/subject/BehaviorSubject';
+import {BehaviorSubject} from 'rxjs/BehaviorSubject'; // rxjs@5.0.0-beta.2の場合は'rxjs/subject/BehaviorSubject'
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/do';
