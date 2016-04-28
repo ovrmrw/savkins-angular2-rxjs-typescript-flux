@@ -81,11 +81,11 @@ class Container {
       .zip<AppState>( // "rxjs zip"でググる。
       // 2つあるReducerは実際にはObservable.scanです。Component側の"dispatcher$.next()"でストリームを流すと、これらのscanがストリームを受けます。
       // 内包する全てのObservableのストリームを受けるまでzipは次にストリームを流しません。        
-      todosStateReducer(initState.todos, dispatcher$), // 勘違いしてはいけません。これは"初回に一度だけ"実行される関数です。
-      filterStateReducer(initState.visibilityFilter, dispatcher$), //  〃
-      (todos, visibilityFilter) => { // zipが返す値を整形できます。
-        return { todos, visibilityFilter } as AppState; // {'todos':todos,'visibilityFilter':visibilityFilter}の省略記法です。
-      }
+        todosStateReducer(initState.todos, dispatcher$), // 勘違いしてはいけません。これは"初回に一度だけ"実行される関数です。
+        filterStateReducer(initState.visibilityFilter, dispatcher$), //  〃
+        (todos, visibilityFilter) => { // zipが返す値を整形できます。
+          return { todos, visibilityFilter } as AppState; // {'todos':todos,'visibilityFilter':visibilityFilter}の省略記法です。
+        }
       )
       // .debounceTime<AppState>(1000) // 1000ms何も流れてこなければストリームを次に流す。RxJSと言えばコレみたいな。
       // .do(s => console.log(s)) // ストリームの中間で値がどうなっているか確認したいときに使います。
