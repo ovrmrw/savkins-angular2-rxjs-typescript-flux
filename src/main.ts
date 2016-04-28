@@ -68,11 +68,11 @@ type Action = ActionTypeTodo | ActionTypeFilter; // 全てのアクションを�
 */
 // @Injectable() // Injectableはインスタンス生成をInjectorに任せる場合に必須です。このサンプルではtoFactoryで生成するので不要。(@laco0416 さんありがとう！)
 class Container {
-  private stateSubject: Subject<AppState>; // .next出来れば良いだけなのでBehaviorSubjectではなくSubjectで可です。
+  private stateSubject$: Subject<AppState>; // .next出来れば良いだけなのでBehaviorSubjectではなくSubjectで可です。
 
   constructor(initState: AppState, dispatcher$: Observable<Action>) { // dispatcherの型はDispatcher<Action>でも良いのですが敢えてそうする必要もないのでObservableにしてます。
     // BehaviorSubjectを使ってStateの初期値をセットします。これが案外重要です。
-    this.stateSubject = new BehaviorSubject(initState); // ここはBehaviorSubjectかReplaySubjectを使わないと動作しませんでした。Subjectではダメでした。
+    this.stateSubject$ = new BehaviorSubject(initState); // ここはBehaviorSubjectかReplaySubjectを使わないと動作しませんでした。Subjectではダメでした。
 
     // Componentで"dispatcher$.next()"するとここにストリームが流れてきます。
     // 最後のsubscribeでComponentにストリームを流すのですが、驚くべき事に一連の流れが全てRxJSのストリームです。
@@ -91,14 +91,14 @@ class Container {
       // .do(s => console.log(s)) // ストリームの中間で値がどうなっているか確認したいときに使います。
       .subscribe(appState => { // "rxjs subscribe"でググる。
         // .nextで次にストリームを流しています。次ってどこ？Componentの"container.state$.map(...)"の部分です。これが腑に落ちると結構感動します。
-        this.stateSubject.next(appState);
+        this.stateSubject$.next(appState);
       });
   }
   
   // このプロパティはComponentとContainerを繋ぐブリッジだと言えます。privateなプロパティを渡すことでリードオンリーにしているのも特徴です。
   // Componentでは"container.state$.map(...)"の部分でストリームを受けています。
   get state$() {
-    return this.stateSubject as Observable<AppState>; // Component側で参照したときに見慣れたObservableになっているという親切設計。
+    return this.stateSubject$ as Observable<AppState>; // Component側で参照したときに見慣れたObservableになっているという親切設計。
   }
 }
 
@@ -355,7 +355,7 @@ bootstrap(TodoApp) // TodoAppコンポーネントのprovidersにセットした
   5. 上記4はどこにストリームを流す？Componentの"container.state$.map(...)"に、です。
   
   大まかな循環サイクルは下記のようになります。Componentから始まり見事にComponentに返ってきていますね。最後はAsyncPipeの中でsubscribeしています。
-  Component -> dispatcher$.next -> scan(Container) -> zip -> subscribe -> stateSubject.next -> map(Component) -> subscribe(async pipe) 
+  Component -> dispatcher$.next -> scan(Container) -> zip -> subscribe -> stateSubject$.next -> map(Component) -> subscribe(async pipe) 
   
   SavkinはRxJSのSubjectを2つの場所で実に巧妙に使っています。
   1つはComponentからContainerのObservable.scanへAction(データ)を送り込む用途として。
