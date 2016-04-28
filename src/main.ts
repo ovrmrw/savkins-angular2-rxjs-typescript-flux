@@ -214,7 +214,7 @@ class TodoComponent {
 @Component({
   selector: 'todo-list',
   template: `
-    <todo *ngFor="#t of filtered|async"
+    <todo *ngFor="#t of filtered | async"
       [todo]="t"
       (toggle)="emitToggle(t.id)"></todo>
   `,
@@ -279,7 +279,7 @@ class AddTodoComponent {
   selector: 'filter-link',
   template: `
     <a href="#" (click)="setVisibilityFilter()"
-      [style.textDecoration]="textEffect|async"><ng-content></ng-content></a>
+      [style.textDecoration]="textEffect | async"><ng-content></ng-content></a>
   `
 })
 class FilterLinkComponent {
@@ -297,15 +297,6 @@ class FilterLinkComponent {
     return this.container.state$.map<string>((state: AppState) => {
       return state.visibilityFilter === this.filter ? 'underline' : 'none';
     });
-    
-    /*
-      templateでasync pipeを使わずに下記のように書いても動作します。
-    */
-    // let style: string;
-    // this.container.state$.map<string>((state: AppState) => {
-    //   return state.visibilityFilter === this.filter ? 'underline' : 'none';
-    // }).subscribe(filter => style = filter);
-    // return style;
   }
 
   setVisibilityFilter() {
