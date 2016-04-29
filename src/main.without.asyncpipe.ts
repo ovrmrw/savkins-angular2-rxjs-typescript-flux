@@ -364,15 +364,15 @@ bootstrap(TodoApp) // TodoAppコンポーネントのprovidersにセットした
 /*
   Containerクラスの下記の一節はVictor Savkinによるアートです。解説をしますが僕の解釈なので100%鵜呑みにはしないでください。
   
-    Observable.zip(Observable.scan, Observable.scan).subscribe(Subject.next());
+    Observable.zip(Subject.scan, Subject.scan).subscribe(Subject.next());
     
   (DispatcherはSubjectを継承したクラスであることをもう一度思い出してください)
   (Subjectは"自分でnextすることで自分を発火できる"という特徴を持っています)
   (ちなみにSubjectはObservableを継承したクラスです。これも重要なポイントです)
   
-  1. Componentの"dispatcher$.next()"でストリームを流すと、Containerの2つのObservable.scanの処理が走ります。(Subjectはnextすることで自分自身を発火できる)
-  2. Observable.zipはRxJSのInnerSubscriberという仕組みを通じて、内包する2つのObservable.scanを待機しています。
-  3. 内包する全てのObservableのストリームを受けるとzipは次にストリームを流します。
+  1. Componentの"dispatcher$.next()"でストリームを流すと、Containerの2つのSubject.scanがそれを受けます。(Subjectはnextすることで自分自身を発火できる)
+  2. Observable.zipはRxJSのInnerSubscriberという仕組みを通じて、内包する2つのSubject.scanのストリームを待機しています。
+  3. 内包する全てのObservable(Subject)のストリームを受けるとzipは次にストリームを流します。
   4. subscribeの中ではStateを管理しているSubjectのnextをコールして"新しいState"を次に流します。
   5. 上記4はどこにストリームを流す？Componentの"container.state$.map(...)"に、です。
   
