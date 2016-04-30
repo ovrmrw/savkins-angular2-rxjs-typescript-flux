@@ -79,8 +79,8 @@ class Container {
     // 理解するのは大変ですがこの一文の威力は凄まじいものがあります。        
     Observable
       .zip<AppState>( // "rxjs zip"でググる。
-      // 2つあるReducerは実際にはObservable.scanです。Component側の"dispatcher$.next()"でストリームを流すと、これらのscanがストリームを受けます。
-      // 内包する全てのObservableのストリームを受けるまでzipは次にストリームを流しません。        
+        // 2つあるReducerは実際にはObservable.scanです。Component側の"dispatcher$.next()"でストリームを流すと、これらのscanがストリームを受けます。
+        // 内包する全てのObservableのストリームを受けるまでzipは次にストリームを流しません。        
         todosStateReducer(initState.todos, dispatcher$), // 勘違いしてはいけません。これは"初回に一度だけ"実行される関数です。
         filterStateReducer(initState.visibilityFilter, dispatcher$), //  〃
         (todos, visibilityFilter) => { // zipが返す値を整形できます。
@@ -250,7 +250,7 @@ class TodoListComponent implements OnInit {
   }
 
   emitToggle(id: number) {
-    // .nextで即座にストリームを流しています。これを受けるのはContainerのObservable.scanです。クロージャを使ったトリックですね。
+    // .nextで即座にストリームを流しています。これを受けるのはContainerの"dipatcher$.scan"(Subject.scan)です。
     this.dispatcher$.next(new ToggleTodoAction(id));
   }
 }
@@ -283,7 +283,7 @@ class AddTodoComponent {
   ) { }
 
   addTodo(value: string) {
-    // .nextで即座にストリームを流しています。これを受けるのはContainerのObservable.scanです。
+    // .nextで即座にストリームを流しています。これを受けるのはContainerの"dipatcher$.scan"(Subject.scan)です。
     this.dispatcher$.next(new AddTodoAction(this.nextId++, value)); // "rxjs subject next"でググる。
   }
 }
@@ -322,7 +322,7 @@ class FilterLinkComponent implements OnInit {
   }
 
   setVisibilityFilter() {
-    // .nextで即座にストリームを流しています。これを受けるのはContainerのObservable.scanです。
+    // .nextで即座にストリームを流しています。これを受けるのはContainerの"dipatcher$.scan"(Subject.scan)です。
     this.dispatcher$.next(new SetVisibilityFilter(this.filter));
   }
 }
@@ -370,7 +370,7 @@ bootstrap(TodoApp) // TodoAppコンポーネントのprovidersにセットした
   (Subjectは"自分でnextすることで自分を発火できる"という特徴を持っています)
   (ちなみにSubjectはObservableを継承したクラスです。これも重要なポイントです)
   
-  1. Componentの"dispatcher$.next()"でストリームを流すと、Containerの2つのSubject.scanがそれを受けます。(Subjectはnextすることで自分自身を発火できる)
+  1. Componentの"dispatcher$.next"でストリームを流すと、Containerの2つの"dispatcher$.scan"(Subject.scan)がそれを受けます。(Subjectはnextすることで自分自身を発火できる)
   2. Observable.zipはRxJSのInnerSubscriberという仕組みを通じて、内包する2つのSubject.scanのストリームを待機しています。
   3. 内包する全てのObservable(Subject)のストリームを受けるとzipは次にストリームを流します。
   4. subscribeの中ではStateを管理しているSubjectのnextをコールして"新しいState"を次に流します。
@@ -380,11 +380,12 @@ bootstrap(TodoApp) // TodoAppコンポーネントのprovidersにセットした
   Component -> dispatcher$.next -> scan(Container) -> zip -> subscribe -> stateSubject$.next -> map(Component) -> subscribe 
   
   SavkinはRxJSのSubjectを2つの場所で実に巧妙に使っています。
-  1つはComponentからContainerのObservable.scanへAction(データ)を送り込む用途として。
+  1つはComponentからContainerのSubject.scanへAction(データ)を送り込む用途として。
   もう1つは上記で始まった一連のストリームの最後でContainerのStateをComponentに送り込む用途として。
   
-  特に後者はBehaviorSubjectという特殊なSubjectを用いており、初期値をセットできます。
-  Savkinはこの特徴とObservable.scanによる値の保持を、FluxやReduxで言うところのStoreの代わりに使っています。
+  特に後者はBehaviorSubjectという特殊なSubjectを用いており、インスタンス生成時に初期値をセットできます。
+  初回のコンポーネント生成時(subscribeも実行される)にその初期値をストリームに流し、Viewの最初の描画に用いています。(多分)
+  Savkinはこの特徴とSubject.scanによる値の保持を、FluxやReduxで言うところのStoreの代わりに使っているんですね。
     
   総じて重要なのは、送り込む先に事前にクロージャしておくことでリモート操作するようにSubjectを使いこなしている点です。
   まるで遠隔操作系のスタンド能力のようですね。元ネタがわからない人はスルーしてください。
