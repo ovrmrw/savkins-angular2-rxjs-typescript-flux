@@ -15,6 +15,11 @@ Adding "main.without.asyncpipe.ts" which works without AsyncPipe.
 
 --- 
 
+(UPDATE)  
+Now you can write async/await.
+
+---
+
 ### How to setup.
 ```
 npm install

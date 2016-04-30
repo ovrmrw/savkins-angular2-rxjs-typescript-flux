@@ -324,6 +324,15 @@ class FilterLinkComponent implements OnInit {
   setVisibilityFilter() {
     // .nextで即座にストリームを流しています。これを受けるのはContainerの"dipatcher$.scan"(Subject.scan)です。
     this.dispatcher$.next(new SetVisibilityFilter(this.filter));
+
+    // (UPDATE)async/awaitも書けます。
+    (async () => {
+      await new Promise(resolve => {
+        setTimeout(() => {
+          console.log('you can write async/await.');
+        }, 1000);
+      });
+    })();
   }
 }
 

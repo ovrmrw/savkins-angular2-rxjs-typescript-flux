@@ -4,13 +4,15 @@
   "description": "",
   "main": "config.js",
   "scripts": {
-    "start": "lite-server",
+    "prestart": "tsc -p .",
+    "start": "concurrently \"lite-server\" \"tsc -p . -w\" ",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "concurrently": "2.0.0",
     "lite-server": "2.2.0",
     "typescript": "1.8.10"
   },
