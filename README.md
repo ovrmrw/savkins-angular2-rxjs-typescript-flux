@@ -20,6 +20,12 @@ Now you can write async/await.
 
 ---
 
+(UPDATE)  
+Rewriting "config.js" for dynamic module loading.  
+Now you can find a lot of modules are loaded on browser when you kick to run Angular2 by builtin developer tools.   
+
+---
+
 ### How to setup.
 ```
 npm install
