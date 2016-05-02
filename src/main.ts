@@ -1,5 +1,6 @@
-import {bootstrap} from 'angular2/platform/browser';
-import {Component, bind, Input, Output, EventEmitter, enableProdMode, ChangeDetectionStrategy} from 'angular2/core';
+import 'zone.js';
+import {bootstrap} from '@angular/platform-browser-dynamic';
+import {Component, bind, Input, Output, EventEmitter, enableProdMode, ChangeDetectionStrategy, OnInit, ChangeDetectorRef} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import {Observer} from 'rxjs/Observer';
 import {Subject} from 'rxjs/Subject';
