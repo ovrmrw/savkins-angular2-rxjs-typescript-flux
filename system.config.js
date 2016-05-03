@@ -1,6 +1,9 @@
 /*
   tscによってes2015形式でコンパイルされたJSファイルをブラウザ上で動的にbabelでトランスパイルします。
   現状TypeScriptで書いたasync/awaitを動かすならビルド不要のこの方法が一番手間がかかりません。
+  (注意)
+  transpiler: 'babel'を使う場合、元のコードでrequireを書いていると実行時エラーになります。(importは問題ない)
+  これはsystemjsがコードをラップするときにrequireをインジェクトしないために発生する現象です。
 */
 System.config({
   baseURL: '/',
