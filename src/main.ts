@@ -1,4 +1,4 @@
-import 'zone.js/dist/zone';
+// import 'zone.js/dist/zone';
 import {bootstrap} from '@angular/platform-browser-dynamic';
 import {Component, bind, Input, Output, EventEmitter, enableProdMode, ChangeDetectionStrategy, OnInit, ChangeDetectorRef} from '@angular/core';
 import {Observable} from 'rxjs/Observable';

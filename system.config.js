@@ -16,7 +16,7 @@ System.config({
     //'angular2': 'node_modules/angular2',
     '@angular': 'node_modules/@angular',
     'rxjs': 'node_modules/rxjs',
-    'zone.js': 'node_modules/zone.js',
+    // 'zone.js': 'node_modules/zone.js',
   },
 
   // mapでファイルではなくフォルダを指定した場合、packagesの設定も合わせて必要になります。
@@ -45,6 +45,6 @@ System.config({
       main: 'index'
     },
     rxjs: {},
-    'zone.js': {}
+    // 'zone.js': {}
   }
 });
